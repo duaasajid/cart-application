@@ -1,0 +1,29 @@
+<h1>Order History</h1>
+<% if @orders.empty? %>
+  <p>You have no orders yet.</p>
+<% else %>
+  <table>
+    <thead>
+      <tr>
+        <th>Customer Name</th>
+        <th>Shipping Address</th>
+        <th>Payment Method</th>
+        <th> Total Amount </th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @orders.each do |order| %>
+        <tr>
+          <td><%= order.name %></td>
+          <td><%= order.shipping_address %></td>
+          <td><%= order.payment_method %></td>
+          <td><%= order.cart.line_items.sum(:total_price) %></td>
+          <td><%= order.created_at.strftime("%d/%m/%Y") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<%= link_to 'Home Page', products_path, class: 'btn btn-primary' %>

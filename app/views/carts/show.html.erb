@@ -1,0 +1,69 @@
+<h1>Shopping Cart</h1>
+
+<% if @cart.line_items.empty? %>
+  <p>Your cart is empty</p>
+<% else %>
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Total</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @cart.line_items.each do |line_item| %>
+        <tr data-line-item-id="<%= line_item.id %>">
+          <td><%= line_item.product.name %></td>
+          <td><input type="number" class="line-item-quantity" value="<%= line_item.quantity %>" min="1" max="99"></td>
+          <td><%= line_item.product.price %></td>
+          <td class="line-item-total"><%= line_item.total_price %></td>
+          <td><%= button_to "Delete", line_item_path(line_item), method: :delete, data: { confirm: "Are you sure?" }, remote: true %></td>
+          </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <p>Total items in cart: <%= @total_items %></p>
+
+<% end %>
+
+<%= link_to 'Continue Shopping', products_path, class: "btn btn-primary" %>
+
+<%= button_to "Place Order", new_order_path, method: :get, class: "button btn btn-primary" %>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+$(document).on('change', '.line-item-quantity', function() {
+
+    var lineItemId = $(this).closest('tr').data('line-item-id');
+    var newQuantity = $(this).val();
+  
+    $.ajax({
+      type: 'PATCH',
+      url: '/line_items/' + lineItemId,
+      data: { line_item: { quantity: newQuantity }, authenticity_token: $('meta[name="csrf-token"]').attr('content') },
+      dataType: 'json'
+    })
+    .done(function(data) {
+      $('#cart-total-price').text(data.total_price);
+      var lineItemTotal = data.line_item.total_price;
+      $('tr[data-line-item-id=' + lineItemId + '] .line-item-total').text(lineItemTotal);
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+      alert('Failed to update quantity: ' + errorThrown);
+    });
+});
+
+$(document).on('ajax:success', '.line-item-delete', function(event) {
+  $('#cart-total-price').text("<%= j @line_item&.total_price %>");
+  $('tr[data-line-item-id="<%= j @line_item&.id %>"]').remove();
+
+});
+
+
+</script>
